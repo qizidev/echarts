@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 
-import Chart from 'rc-echarts'
+import Chart from 'echarts-for-react'
 
 const container = document.getElementById('container');
 

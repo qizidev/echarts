@@ -36,6 +36,6 @@
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
     "sass": "^0.5.0",
-    "rc-echarts": "^0.3.1"
+    "echarts-for-react": "^1.1.6"
   }
 }
