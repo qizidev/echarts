@@ -76,19 +76,19 @@ module.exports = vendor;
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-module.exports = (__webpack_require__(0))(205);
+module.exports = (__webpack_require__(0))(126);
 
 /***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-module.exports = (__webpack_require__(0))(206);
+module.exports = (__webpack_require__(0))(208);
 
 /***/ },
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-module.exports = (__webpack_require__(0))(88);
+module.exports = (__webpack_require__(0))(209);
 
 /***/ },
 /* 4 */
@@ -99,17 +99,17 @@ module.exports = (__webpack_require__(0))(88);
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(3);
+var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _reactDom = __webpack_require__(2);
+var _reactDom = __webpack_require__(3);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
-var _rcEcharts = __webpack_require__(1);
+var _echartsForReact = __webpack_require__(2);
 
-var _rcEcharts2 = _interopRequireDefault(_rcEcharts);
+var _echartsForReact2 = _interopRequireDefault(_echartsForReact);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -131,6 +131,33 @@ var options = {
 	tooltip: {},
 	animationDurationUpdate: 1500,
 	animationEasingUpdate: 'quinticInOut',
+	grid: {
+		show: false,
+		top: 0,
+		left: 0
+	},
+	xAxis: {
+		type: 'value',
+		scale: false,
+		position: 'top',
+		axisLine: {
+			show: false
+		},
+		splitLine: {
+			show: false
+		}
+	},
+	yAxis: {
+		type: 'value',
+		scale: false,
+		inverse: true,
+		axisLine: {
+			show: false
+		},
+		splitLine: {
+			show: false
+		}
+	},
 	series: []
 };
 
@@ -164,21 +191,18 @@ var MyChart = function (_Component) {
 							position: 'left',
 							formatter: function formatter(param) {
 								return param.description;
-							},
-
-							data: Object.keys(self.idcsAll).map(function (el) {
-								var idc = self.idcsAll[el];
-								return {
-									x: idc.position[0],
-									y: idc.position[1],
-									value: idc.value,
-									description: idc.description,
-									name: idc.name,
-									type: idc.type
-								};
-							})
+							}
 						}
-					}
+					},
+					data: Object.keys(self.idcsAll).map(function (el) {
+						var idc = self.idcsAll[el];
+						return {
+							value: [idc.position[0], idc.position[1]],
+							description: idc.description,
+							name: idc.name,
+							type: idc.type
+						};
+					})
 				}, {
 					type: 'lines',
 					coordinateSystem: 'cartesian2d',
@@ -189,53 +213,56 @@ var MyChart = function (_Component) {
 							position: 'left',
 							formatter: function formatter(param) {
 								return param.direction;
-							},
-
-							effect: {
-								show: true,
-								period: 4,
-								trailLength: 4
-							},
-							data: function () {
-								var arr = [];
-								Object.keys(self.idcsAll).forEach(function (el) {
-									var idcsAll = self.idcsAll;
-									var idc = idcsAll[el];
-									var flows = idc.flows;
-									if (!flows) return;
-									flows.map(function (child, index, arr) {
-										var source = idc.position;
-										var destination = idcsAll[child.target].position;
-										var direction = child.direction;
-										var flow = child.out;
-										arr.push({
-											coords: [source, destination],
-											direction: direction,
-											flow: flow
-										});
-										if (child.in !== null) {
-											var _source = idcsAll['hyper' + '-' + child.target].position;
-											var _destination = idc.position;
-											var _direction = child.name + '=>' + idc.name;
-											var _flow = child.in;
-											arr.push({
-												coords: [_source, _destination],
-												direction: _direction,
-												flow: _flow
-											});
-										}
-									});
-								});
-							}()
+							}
 						}
-					}
+					},
+					// effect: {
+					// 	show: true,
+					// 	period: 4,
+					// 	trailLength: 4
+					// },
+					large: true,
+					data: function () {
+						var result = [];
+						Object.keys(self.idcsAll).forEach(function (el) {
+							var idcsAll = self.idcsAll;
+							var idc = idcsAll[el];
+							var flows = idc.flows;
+							if (!flows) return;
+							flows.map(function (child, index, arr) {
+								var source = idc.position;
+								var destination = idcsAll[child.target].position;
+								var direction = child.direction;
+								var flow = child.flowout;
+								result.push({
+									coords: [source, destination],
+									direction: direction,
+									flow: flow
+								});
+								if (child.flowin !== null) {
+									var _source = idcsAll[child.target].position;
+									var _destination = idc.position;
+									var _direction = child.target + '=>' + idc.name;
+									var _flow = child.flowin;
+									result.push({
+										coords: [_source, _destination],
+										direction: _direction,
+										flow: _flow
+									});
+								}
+							});
+						});
+						return result;
+					}()
 				}]
 			});
 		}
 	}, {
 		key: 'polarToCartesian',
 		value: function polarToCartesian(radius, angle) {
-			return [radius * Math.cos(angle) + this.props.width, radius * Math.sin(angle) + this.props.height];
+			var x = radius * Math.cos(angle);
+			var y = radius * Math.sin(angle);
+			return [Math.round(x), Math.round(y)];
 		}
 	}, {
 		key: 'getData',
@@ -251,8 +278,8 @@ var MyChart = function (_Component) {
 			var _this2 = this;
 
 			var _props = this.props,
-			    width = _props.width,
-			    height = _props.height;
+			    Mx = _props.Mx,
+			    My = _props.My;
 
 			this.idcsAll = {};
 			data = JSON.parse(data);
@@ -267,7 +294,7 @@ var MyChart = function (_Component) {
 				var value = 300;
 				var type = 'hyper';
 				var name = 'hyper' + '-' + el.name;
-				var position = [width / 2 + (index - (arr.length - 1) / 2) * 100, height / 2];
+				var position = [+Mx + (index - (arr.length - 1) / 2) * 100, +My];
 				var description = name;
 				_this2.idcsAll[name] = {
 					name: name,
@@ -294,11 +321,15 @@ var MyChart = function (_Component) {
 				var name = el.name;
 				var value = el.total / 20000000000;
 				var flows = el.detail.map(function (child) {
+					var target = child.target == 'hyper' ? 'hyper' + '-' + child.name : child.name;
+					var direction = el.name + '=>' + target;
+					var flowout = child.out;
+					var flowin = child.target == 'hyper' ? child.in : null;
 					return {
-						target: child.name,
-						direction: el.name + '=>' + child.name,
-						out: child.out,
-						in: child.target == 'hyper' ? child.in : null
+						target: target,
+						direction: direction,
+						flowout: flowout,
+						flowin: flowin
 					};
 				});
 				Object.assign(_this2.idcsAll[name], {
@@ -310,14 +341,14 @@ var MyChart = function (_Component) {
 	}, {
 		key: 'render',
 		value: function render() {
-			return _react2.default.createElement(_rcEcharts2.default, { options: this.props.options, onReady: this.ready.bind(this) });
+			return _react2.default.createElement(_echartsForReact2.default, { option: this.props.options, onChartReady: this.ready.bind(this), style: { height: '600px', width: '600px' } });
 		}
 	}]);
 
 	return MyChart;
 }(_react.Component);
 
-_reactDom2.default.render(_react2.default.createElement(MyChart, { options: options, width: '600', height: '600' }), container);
+_reactDom2.default.render(_react2.default.createElement(MyChart, { options: options, Mx: '0', My: '0' }), container);
 
 /***/ }
 /******/ ]);

@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 
-import Chart from 'echarts-for-react'
+import ReactEcharts from 'echarts-for-react'
 
 const container = document.getElementById('container');
 
@@ -15,6 +15,33 @@ const options = {
 	tooltip: {},
 	animationDurationUpdate: 1500,
 	animationEasingUpdate: 'quinticInOut',
+	grid: {
+		show: false,
+		top: 0,
+		left: 0
+	},
+	xAxis: {
+		type: 'value',
+		scale: false,
+		position: 'top',
+		axisLine: {
+			show: false
+		},
+		splitLine: {
+			show: false
+		}
+	},
+	yAxis: {
+		type: 'value',
+		scale: false,
+		inverse: true,
+		axisLine: {
+			show: false
+		},
+		splitLine: {
+			show: false
+		}
+	},
 	series: []
 };
 
@@ -40,20 +67,18 @@ class MyChart extends Component {
 							position: 'left',
 							formatter(param) {
 								return param.description
-							},
-							data: Object.keys(self.idcsAll).map((el) => {
-								let idc = self.idcsAll[el];
-								return {
-									x: idc.position[0],
-									y: idc.position[1],
-									value: idc.value,
-									description: idc.description,
-									name: idc.name,
-									type: idc.type
-								}
-							})
+							}
 						}
-					}
+					},
+					data: Object.keys(self.idcsAll).map((el) => {
+						let idc = self.idcsAll[el];
+						return {
+							value: [idc.position[0], idc.position[1]],
+							description: idc.description,
+							name: idc.name,
+							type: idc.type
+						}
+					})
 				},
 				{
 					type: 'lines',
@@ -65,51 +90,55 @@ class MyChart extends Component {
 							position: 'left',
 							formatter(param) {
 								return param.direction
-							},
-							effect: {
-								show: true,
-								period: 4,
-								trailLength: 4
-							},
-							data: function(){
-								let arr = [];
-								Object.keys(self.idcsAll).forEach((el) => {
-									let idcsAll = self.idcsAll;
-									let idc = idcsAll[el];
-									let flows = idc.flows;
-									if(!flows) return;
-									flows.map((child, index, arr) => {
-										let source = idc.position;
-										let destination = idcsAll[child.target].position;
-										let direction = child.direction;
-										let flow = child.out;
-										arr.push({
-											coords: [source, destination],
-											direction,
-											flow
-										});
-										if(child.in !== null) {
-											let source = idcsAll['hyper' + '-' + child.target].position;
-											let destination = idc.position;
-											let direction = child.name + '=>' + idc.name;
-											let flow = child.in;
-											arr.push({
-												coords: [source, destination],
-												direction,
-												flow
-											})
-										}
-									})
-								})
-							}()
+							}
 						}
-					}
+					},
+					// effect: {
+					// 	show: true,
+					// 	period: 4,
+					// 	trailLength: 4
+					// },
+					large: true,
+					data: function(){
+						let result = [];
+						Object.keys(self.idcsAll).forEach((el) => {
+							let idcsAll = self.idcsAll;
+							let idc = idcsAll[el];
+							let flows = idc.flows;
+							if(!flows) return;
+							flows.map((child, index, arr) => {
+								let source = idc.position;
+								let destination = idcsAll[child.target].position;
+								let direction = child.direction;
+								let flow = child.flowout;
+								result.push({
+									coords: [source, destination],
+									direction,
+									flow
+								});
+								if(child.flowin !== null) {
+									let source = idcsAll[child.target].position;
+									let destination = idc.position;
+									let direction = child.target + '=>' + idc.name;
+									let flow = child.flowin;
+									result.push({
+										coords: [source, destination],
+										direction,
+										flow
+									})
+								}
+							})
+						});
+						return result
+					}()
 				}
 			]
 		})
 	}
 	polarToCartesian(radius, angle) {
-		return [radius*Math.cos(angle) + this.props.width, radius*Math.sin(angle) + this.props.height]
+		let x = radius*Math.cos(angle);
+		let y = radius*Math.sin(angle);
+		return [Math.round(x), Math.round(y)]
 	}
 	getData() {
 		// $.get('http://cp01-sys-idp-dev04.epc.baidu.com:8888/api/visual/getAreaIDC?key=%E5%8D%8E%E5%8C%97', (data) => {
@@ -118,7 +147,7 @@ class MyChart extends Component {
 		this.handleData(tmpData)
 	}
 	handleData(data){
-		const { width, height } = this.props;
+		const { Mx, My } = this.props;
 		this.idcsAll = {};
 		data = JSON.parse(data);
 		let hyper = data.hyper.map((el) => {
@@ -132,7 +161,7 @@ class MyChart extends Component {
 			let value = 300;
 			let type = 'hyper';
 			let name = 'hyper' + '-' + el.name;
-			let position = [width/2 + (index - (arr.length - 1) / 2) * 100, height/2];
+			let position = [+Mx + (index - (arr.length - 1) / 2) * 100, +My];
 			let description =  name;
 			this.idcsAll[name] = {
 				name,
@@ -159,11 +188,15 @@ class MyChart extends Component {
 			let name = el.name;
 			let value = el.total/20000000000;
 			let flows = el.detail.map((child) => {
+				let target = child.target == 'hyper' ? 'hyper' + '-' + child.name : child.name;
+				let direction = el.name + '=>' + target;
+				let flowout = child.out;
+				let flowin = child.target == 'hyper' ? child.in : null;
 				return {
-					target: child.name,
-					direction: el.name + '=>' + child.name,
-					out: child.out,
-					in: child.target == 'hyper' ? child.in : null
+					target,
+					direction,
+					flowout,
+					flowin
 				}
 			});
 			Object.assign(this.idcsAll[name], {
@@ -174,9 +207,9 @@ class MyChart extends Component {
 	}
 	render() {
 		return (
-			<Chart options={this.props.options} onReady={this.ready.bind(this)} />
+			<ReactEcharts option={this.props.options} onChartReady={this.ready.bind(this)} style={{height: '600px', width: '600px'}}/>
 		)
 	}
 }
 
-ReactDOM.render(<MyChart options={options} width="600" height="600" />, container);
+ReactDOM.render(<MyChart options={options} Mx="0" My="0" />, container);
