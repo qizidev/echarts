@@ -148,6 +148,24 @@ var options = {
 	grid: {
 		show: false
 	},
+	tooltip: {
+		show: true,
+		trigger: 'item',
+		position: 'inside',
+		confine: true,
+		formatter: function formatter(params) {
+			switch (params.seriesType) {
+				case 'lines':
+					return 'direction: ' + params.data.direction + ' <br/>flow: ' + params.data.flow;
+					break;
+				case 'scatter':
+					return 'name: ' + params.data.name + ' <br/>position: ' + params.data.description;
+					break;
+				default:
+					return null;
+			}
+		}
+	},
 	xAxis: {
 		type: 'value',
 		scale: false,
@@ -219,14 +237,8 @@ var MyChart = function (_Component) {
 							show: true,
 							position: 'top',
 							formatter: function formatter(param) {
+								console.log(param.data.name);
 								return param.data.name;
-							}
-						},
-						emphasis: {
-							show: true,
-							position: 'right',
-							formatter: function formatter(param) {
-								return param.data.description;
 							}
 						}
 					},
@@ -247,9 +259,10 @@ var MyChart = function (_Component) {
 					effect: {
 						show: true,
 						period: 3,
-						trailLength: 0.7,
+						symbol: 'rect',
+						trailLength: .1,
 						color: '#000000',
-						symbolSize: 1
+						symbolSize: [1.5, 100]
 					},
 					label: {
 						normal: {
@@ -258,8 +271,14 @@ var MyChart = function (_Component) {
 					},
 					lineStyle: {
 						normal: {
-							width: 0,
-							curveness: 0.2
+							color: '#b1db6b',
+							width: 2,
+							curveness: 0.4
+						},
+						emphasis: {
+							color: 'red',
+							width: 4,
+							curveness: 0.4
 						}
 					},
 					large: true,
@@ -296,28 +315,6 @@ var MyChart = function (_Component) {
 						tmp.lines = result;
 						return result;
 					}()
-				}, {
-					type: 'lines',
-					coordinateSystem: 'cartesian2d',
-					zlevel: 1,
-					label: {
-						normal: {
-							show: false
-						}
-					},
-					lineStyle: {
-						normal: {
-							color: '#b1db6b',
-							width: 2,
-							curveness: 0.2
-						},
-						emphasis: {
-							color: 'red',
-							width: 4,
-							curveness: 0.2
-						}
-					},
-					data: tmp.lines
 				}]
 			});
 		}
@@ -373,7 +370,7 @@ var MyChart = function (_Component) {
 				var description = el.description;
 				var key = el.key;
 				var type = 'idc';
-				var position = _this2.polarToCartesian.apply(_this2, [400, 180 / arr.length * index * Math.PI]);
+				var position = _this2.polarToCartesian.apply(_this2, [400, 2 / arr.length * index * Math.PI]);
 				_this2.idcsAll[key] = {
 					name: name,
 					description: description,

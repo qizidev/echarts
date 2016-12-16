@@ -24,6 +24,24 @@ const options = {
 	grid: {
 		show: false,
 	},
+	tooltip: {
+		show: true,
+		trigger: 'item',
+		position: 'inside',
+		confine: true,
+		formatter(params) {
+			switch (params.seriesType) {
+				case 'lines':
+					return `direction: ${params.data.direction} <br/>flow: ${params.data.flow}`
+					break;
+				case 'scatter':
+					return `name: ${params.data.name} <br/>position: ${params.data.description}`
+					break;
+				default:
+					return null
+			}
+		}
+	},
 	xAxis: {
 		type: 'value',
 		scale: false,
@@ -85,14 +103,8 @@ class MyChart extends Component {
 							show: true,
 							position: 'top',
 							formatter(param) {
+								console.log(param.data.name)
 								return param.data.name
-							}
-						},
-						emphasis: {
-							show: true,
-							position: 'right',
-							formatter(param) {
-								return param.data.description
 							}
 						}
 					},
@@ -114,9 +126,10 @@ class MyChart extends Component {
 					effect: {
 						show: true,
 						period: 3,
-						trailLength: 0.7,
+						symbol: 'rect',
+						trailLength: .1,
 						color: '#000000',
-						symbolSize: 1
+						symbolSize: [1.5, 10]
 					},
 					label: {
 						normal: {
@@ -125,8 +138,14 @@ class MyChart extends Component {
 					},
 					lineStyle: {
 						normal: {
-							width: 0,
-							curveness: 0.2
+							color: '#b1db6b',
+							width: 2,
+							curveness: 0.4
+						},
+						emphasis: {
+							color: 'red',
+							width: 4,
+							curveness: 0.4
 						}
 					},
 					large: true,
@@ -164,29 +183,29 @@ class MyChart extends Component {
 						return result
 					}()
 				},
-				{
-					type: 'lines',
-					coordinateSystem: 'cartesian2d',
-					zlevel: 1,
-					label: {
-						normal: {
-							show: false
-						}
-					},
-					lineStyle: {
-						normal: {
-							color: '#b1db6b',
-							width: 2,
-							curveness: 0.2
-						},
-						emphasis: {
-							color: 'red',
-							width: 4,
-							curveness: 0.2
-						}
-					},
-					data: tmp.lines
-				}
+				// {
+				// 	type: 'lines',
+				// 	coordinateSystem: 'cartesian2d',
+				// 	zlevel: 1,
+				// 	label: {
+				// 		normal: {
+				// 			show: false
+				// 		}
+				// 	},
+				// 	lineStyle: {
+				// 		normal: {
+				// 			color: '#b1db6b',
+				// 			width: 2,
+				// 			curveness: 0.4
+				// 		},
+				// 		emphasis: {
+				// 			color: 'red',
+				// 			width: 4,
+				// 			curveness: 0.4
+				// 		}
+				// 	},
+				// 	data: tmp.lines
+				// }
 			]
 		})
 	}
@@ -231,7 +250,7 @@ class MyChart extends Component {
 			let description = el.description;
 			let key = el.key;
 			let type = 'idc';
-			let position = this.polarToCartesian(...[400, 180 / arr.length * index * Math.PI]);
+			let position = this.polarToCartesian(...[400, 2 / arr.length * index * Math.PI]);
 			this.idcsAll[key] = {
 				name,
 				description,
