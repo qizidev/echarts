@@ -12,33 +12,45 @@ const options = {
 		text: 'UMP数据中心',
 		left: 'center'
 	},
-	tooltip: {},
+	backgroundColor: '#fff',
+	// tooltip : {
+	// 	trigger: 'item',
+	// 	formatter: "{a} <br/>{b}: {c} ({d}%)"
+	// },
 	animationDurationUpdate: 1500,
 	animationEasingUpdate: 'quinticInOut',
 	grid: {
 		show: false,
-		top: 0,
-		left: 0
 	},
 	xAxis: {
 		type: 'value',
 		scale: false,
-		position: 'top',
 		axisLine: {
 			show: false
 		},
+		axisLabel: {
+			show: false
+		},
 		splitLine: {
+			show: false
+		},
+		axisTick: {
 			show: false
 		}
 	},
 	yAxis: {
 		type: 'value',
 		scale: false,
-		inverse: true,
 		axisLine: {
 			show: false
 		},
+		axisLabel: {
+			show: false
+		},
 		splitLine: {
+			show: false
+		},
+		axisTick: {
 			show: false
 		}
 	},
@@ -53,20 +65,22 @@ class MyChart extends Component {
 		this.getData()
 	}
 	ready(echart) {
-		var self = this;
+		let self = this;
+		let tmp = {};
 		echart.setOption({
 			series: [
 				{
-					type: 'effectScatter',
+					type: 'scatter',
 					coordinateSystem: 'cartesian2d',
 					symbol: 'circle',
-					zlevel: 1,
+					symbolSize: 30,
+					zlevel: 3,
 					label: {
 						emphasis: {
 							show: true,
-							position: 'left',
+							position: 'right',
 							formatter(param) {
-								return param.description
+								return param.data.description
 							}
 						}
 					},
@@ -76,7 +90,14 @@ class MyChart extends Component {
 							value: [idc.position[0], idc.position[1]],
 							description: idc.description,
 							name: idc.name,
-							type: idc.type
+							type: idc.type,
+							size: idc.value,
+							label: {
+								normal: {
+									show: true,
+									position: 'top'
+								}
+							}
 						}
 					})
 				},
@@ -84,20 +105,24 @@ class MyChart extends Component {
 					type: 'lines',
 					coordinateSystem: 'cartesian2d',
 					zlevel: 2,
+					effect: {
+						show: true,
+						period: 3,
+						trailLength: 0.7,
+						color: '#000000',
+						symbolSize: 1
+					},
 					label: {
-						emphasis: {
-							show: true,
-							position: 'left',
-							formatter(param) {
-								return param.direction
-							}
+						normal: {
+							show: false
 						}
 					},
-					// effect: {
-					// 	show: true,
-					// 	period: 4,
-					// 	trailLength: 4
-					// },
+					lineStyle: {
+						normal: {
+							width: 0,
+							curveness: 0.2
+						}
+					},
 					large: true,
 					data: function(){
 						let result = [];
@@ -129,8 +154,32 @@ class MyChart extends Component {
 								}
 							})
 						});
+						tmp.lines = result;
 						return result
 					}()
+				},
+				{
+					type: 'lines',
+					coordinateSystem: 'cartesian2d',
+					zlevel: 1,
+					label: {
+						normal: {
+							show: false
+						}
+					},
+					lineStyle: {
+						normal: {
+							color: '#b1db6b',
+							width: 2,
+							curveness: 0.2
+						},
+						emphasis: {
+							color: 'red',
+							width: 4,
+							curveness: 0.2
+						}
+					},
+					data: tmp.lines
 				}
 			]
 		})
@@ -141,9 +190,9 @@ class MyChart extends Component {
 		return [Math.round(x), Math.round(y)]
 	}
 	getData() {
-		// $.get('http://cp01-sys-idp-dev04.epc.baidu.com:8888/api/visual/getAreaIDC?key=%E5%8D%8E%E5%8C%97', (data) => {
-		// 	this.handleData(data)
-		// })
+		$.get('http://cp01-sys-idp-dev04.epc.baidu.com:8888/api/visual/getAreaIDC?key=%E5%8D%8E%E5%8C%97', (data) => {
+			this.handleData(data)
+		})
 		this.handleData(tmpData)
 	}
 	handleData(data){
@@ -158,7 +207,7 @@ class MyChart extends Component {
 		let idcs = data.idcs;
 		let idcFlows = data.idcFlows;
 		hyper.forEach((el, index, arr) => {
-			let value = 300;
+			let value = 100;
 			let type = 'hyper';
 			let name = 'hyper' + '-' + el.name;
 			let position = [+Mx + (index - (arr.length - 1) / 2) * 100, +My];
@@ -207,7 +256,7 @@ class MyChart extends Component {
 	}
 	render() {
 		return (
-			<ReactEcharts option={this.props.options} onChartReady={this.ready.bind(this)} style={{height: '600px', width: '600px'}}/>
+			<ReactEcharts option={this.props.options} onChartReady={this.ready.bind(this)} style={{height: '100%', width: '100%'}}/>
 		)
 	}
 }

@@ -128,33 +128,45 @@ var options = {
 		text: 'UMP数据中心',
 		left: 'center'
 	},
-	tooltip: {},
+	backgroundColor: '#fff',
+	// tooltip : {
+	// 	trigger: 'item',
+	// 	formatter: "{a} <br/>{b}: {c} ({d}%)"
+	// },
 	animationDurationUpdate: 1500,
 	animationEasingUpdate: 'quinticInOut',
 	grid: {
-		show: false,
-		top: 0,
-		left: 0
+		show: false
 	},
 	xAxis: {
 		type: 'value',
 		scale: false,
-		position: 'top',
 		axisLine: {
 			show: false
 		},
+		axisLabel: {
+			show: false
+		},
 		splitLine: {
+			show: false
+		},
+		axisTick: {
 			show: false
 		}
 	},
 	yAxis: {
 		type: 'value',
 		scale: false,
-		inverse: true,
 		axisLine: {
 			show: false
 		},
+		axisLabel: {
+			show: false
+		},
 		splitLine: {
+			show: false
+		},
+		axisTick: {
 			show: false
 		}
 	},
@@ -179,18 +191,20 @@ var MyChart = function (_Component) {
 		key: 'ready',
 		value: function ready(echart) {
 			var self = this;
+			var tmp = {};
 			echart.setOption({
 				series: [{
-					type: 'effectScatter',
+					type: 'scatter',
 					coordinateSystem: 'cartesian2d',
 					symbol: 'circle',
-					zlevel: 1,
+					symbolSize: 30,
+					zlevel: 3,
 					label: {
 						emphasis: {
 							show: true,
-							position: 'left',
+							position: 'right',
 							formatter: function formatter(param) {
-								return param.description;
+								return param.data.description;
 							}
 						}
 					},
@@ -200,27 +214,38 @@ var MyChart = function (_Component) {
 							value: [idc.position[0], idc.position[1]],
 							description: idc.description,
 							name: idc.name,
-							type: idc.type
+							type: idc.type,
+							size: idc.value,
+							label: {
+								normal: {
+									show: true,
+									position: 'top'
+								}
+							}
 						};
 					})
 				}, {
 					type: 'lines',
 					coordinateSystem: 'cartesian2d',
 					zlevel: 2,
+					effect: {
+						show: true,
+						period: 3,
+						trailLength: 0.7,
+						color: '#000000',
+						symbolSize: 1
+					},
 					label: {
-						emphasis: {
-							show: true,
-							position: 'left',
-							formatter: function formatter(param) {
-								return param.direction;
-							}
+						normal: {
+							show: false
 						}
 					},
-					// effect: {
-					// 	show: true,
-					// 	period: 4,
-					// 	trailLength: 4
-					// },
+					lineStyle: {
+						normal: {
+							width: 0,
+							curveness: 0.2
+						}
+					},
 					large: true,
 					data: function () {
 						var result = [];
@@ -252,8 +277,31 @@ var MyChart = function (_Component) {
 								}
 							});
 						});
+						tmp.lines = result;
 						return result;
 					}()
+				}, {
+					type: 'lines',
+					coordinateSystem: 'cartesian2d',
+					zlevel: 1,
+					label: {
+						normal: {
+							show: false
+						}
+					},
+					lineStyle: {
+						normal: {
+							color: '#b1db6b',
+							width: 2,
+							curveness: 0.2
+						},
+						emphasis: {
+							color: 'red',
+							width: 4,
+							curveness: 0.2
+						}
+					},
+					data: tmp.lines
 				}]
 			});
 		}
@@ -291,7 +339,7 @@ var MyChart = function (_Component) {
 			var idcs = data.idcs;
 			var idcFlows = data.idcFlows;
 			hyper.forEach(function (el, index, arr) {
-				var value = 300;
+				var value = 100;
 				var type = 'hyper';
 				var name = 'hyper' + '-' + el.name;
 				var position = [+Mx + (index - (arr.length - 1) / 2) * 100, +My];
@@ -341,7 +389,7 @@ var MyChart = function (_Component) {
 	}, {
 		key: 'render',
 		value: function render() {
-			return _react2.default.createElement(_echartsForReact2.default, { option: this.props.options, onChartReady: this.ready.bind(this), style: { height: '600px', width: '600px' } });
+			return _react2.default.createElement(_echartsForReact2.default, { option: this.props.options, onChartReady: this.ready.bind(this), style: { height: '100%', width: '100%' } });
 		}
 	}]);
 
