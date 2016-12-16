@@ -36,6 +36,10 @@ module.exports = {
 		extensions: [".js", ".json", ".jsx"]
 	},
 	plugins: [
+		new webpack.ProvidePlugin({
+			$: 'jquery',
+			jQuery: 'jquery'
+		}),
 		new webpack.DllReferencePlugin({
 			context: __dirname,
 			manifest: require('./manifest.json'),

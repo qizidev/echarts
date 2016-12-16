@@ -4,7 +4,7 @@ const path = require('path');
 
 module.exports = {
 	entry: {
-		vendor: ['react', 'react-dom', 'echarts-for-react']
+		vendor: ['react', 'react-dom', 'echarts-for-react', 'jquery']
 	},
 	output: {
 		path: path.resolve(__dirname, 'dist'),
